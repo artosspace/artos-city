@@ -260,7 +260,7 @@ body.touch.portrait #decks{height:40%}body.decking .gb{visibility:hidden}body.de
   <h3>Camera, jobs and HQ</h3><p>Tap <b>CAM</b> (or C) to shoot a photo anywhere. Photos pin to the Polaroid wall at <b>Artos HQ</b> (white door), where you can save them. Tap <b>JOBS</b> (or J) for client briefs: shoot a location (some need golden hour, night or rain) or rush a delivery against the clock. Jobs pay cash and rep. Spend it at <b>Camera Exchange</b> (pink door) on a camcorder, Mamiya 7, lighting kit, Blackmagic 6K and a cinema rig. New cameras add new photo looks; the rig unlocks music video shoots at HQ, which record a clip you can save.</p>
   <h3>Radio, barber and emotes</h3><p>Tap <b>RADIO</b> (or R) to flick between Drazy Radio, Dhey Originals, Blue Note Jazz, Boom Bap FM and Slow Jams. <b>Fresh Cuts</b> (red door) sells new haircuts. <b>EMOTE</b> (or keys 1 to 4) to wave, dance, flash or hype, and friends in your city see it.</p>
   <h3>The phone</h3><p>Tap <b>📱 Phone</b> for the map, camera, jobs, radio, emotes, chat and settings.</p>
-  <h3>DJ Quin B and the decks</h3><p>Walk into the club and DJ Quin B's mix takes over; the city radio stops until you leave. Use the dance buttons (or keys 1 to 5) for the two-step, the Candy (electric slide), Milly Rock, wind and Shmoney. Walk up to the DJ booth and press A (or tap Decks) to mix on two decks: EASY mode has one-tap MIX IN, scratching and effect pads; PRO mode adds tempo, EQ, cue points, the crossfader and filter.</p>
+  <h3>DJ Quin B and the decks</h3><p>Walk into the club and DJ Quin B's mix kicks in from a random point in the set; the city radio stops until you leave. There's a bar on the left (first drink's on the house). Use the dance buttons (or keys 1 to 5) for the two-step, the Candy (electric slide), Milly Rock, wind and Shmoney. Walk up to the DJ booth and press A (or tap Decks) to mix on two decks: EASY mode has one-tap MIX IN, scratching and effect pads; PRO mode adds tempo, EQ, cue points, the crossfader and filter.</p>
   <h3>Travel</h3><p>At the airport you can fly to New York, Kingston, Port of Spain, Tokyo or Paris. Each city has its own streets, colours and vibe, and the islands have beaches and dolphins.</p>
   <h3>Riding together</h3><p>In a shared city, walk up to a friend's car and press A to ride as a passenger. Press B (or Q) to ask to drive, and they can hand you the keys with LET THEM DRIVE. Tap Chat on the phone (or Enter) to talk.</p>
   <h3>Ice Box</h3><p>The jewellery store (icy blue door) sells grillz and chains.</p>
@@ -572,9 +572,10 @@ function genStop(){if(!gen)return;const g0=gen;gen=null;clearInterval(g0.timer);
 const musicLevel=()=>save.mute?0:player.roof?1:(player.mode==='car'?.85:.5);
 function musicVol(){music.volume=musicLevel();if(gen&&AC)gen.out.gain.setTargetAtTime(musicLevel()*.9,AC.currentTime,.1)}
 const clubAudio=new Audio();clubAudio.loop=true;clubAudio.preload='none';let clubFail=false;clubAudio.addEventListener('error',()=>{if(!clubAudio.src)return;clubFail=true;if(player.roof)playTrack()});
-function clubOn(){music.pause();genStop();if(am)try{am.pause()}catch(e){}if(!clubAudio.src)clubAudio.src='club-mix.mp3';if(save.mute||clubFail){if(clubFail&&!save.mute)playTrack();return}clubAudio.play().catch(()=>{});updMusic()}
+function clubPlay(){if(!clubAudio.src){clubAudio.preload='auto';clubAudio.src='club-mix.mp3'}const go=()=>{if(clubAudio.dataset.r!=='1'&&isFinite(clubAudio.duration)&&clubAudio.duration>180){try{clubAudio.currentTime=Math.random()*(clubAudio.duration-120)}catch(e){}clubAudio.dataset.r='1'}};if(clubAudio.readyState>=1)go();else clubAudio.addEventListener('loadedmetadata',go,{once:true});clubAudio.play().catch(()=>{})}
+function clubOn(){music.pause();genStop();if(am)try{am.pause()}catch(e){}if(save.mute||clubFail){if(clubFail&&!save.mute)playTrack();return}clubAudio.dataset.r='0';clubPlay();updMusic()}
 function clubOff(){clubAudio.pause();if(am&&!save.mute)am.play().catch(()=>{});else if(!save.mute)playTrack();updMusic()}
-function playTrack(){if(player.roof&&!clubFail){music.pause();genStop();if(!save.mute){if(!clubAudio.src)clubAudio.src='club-mix.mp3';clubAudio.play().catch(()=>{})}updMusic();return}if(am){updMusic();return}if(!playlist.length){updMusic();return}const t=playlist[mIdx%playlist.length];mStarted=true;
+function playTrack(){if(player.roof&&!clubFail){music.pause();genStop();if(!save.mute)clubPlay();updMusic();return}if(am){updMusic();return}if(!playlist.length){updMusic();return}const t=playlist[mIdx%playlist.length];mStarted=true;
   if(t.pk&&!t.f){try{const bin=atob(t.pk),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);t.f=URL.createObjectURL(new Blob([u],{type:'audio/mpeg'}));t.pk=null}catch(e){playlist=playlist.filter(x=>x!==t);return playTrack()}}
   if(t.emb&&!t.f){const el0=document.getElementById(t.emb);if(!el0&&document.readyState==='loading'){const np=$('np');np.textContent='♪ LOADING MUSIC…';np.style.display=started?'':'none';if(!t.wait){t.wait=1;document.addEventListener('DOMContentLoaded',()=>{if(playlist[mIdx%playlist.length]===t)playTrack()},{once:true})}return}try{const el=el0,bin=atob(el.textContent.trim()),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);t.f=URL.createObjectURL(new Blob([u],{type:'audio/mpeg'}))}catch(e){playlist=playlist.filter(x=>x!==t);return playTrack()}}
   if(t.gen){music.pause();music.removeAttribute('src');if(!save.mute){ensureAudio();genStart(t)}}else{genStop();music.src=t.f;musicVol();if(!save.mute)music.play().catch(()=>{})}updMusic()}
@@ -666,7 +667,7 @@ function updClothes(){$('poFit').textContent=OUTFITS[save.body][save.fit].name;$
   const sw=$('poHc');sw.innerHTML='';sw.style.display=(save.hat|0)===1||(save.hat|0)===2?'':'none';HAT_COLS.forEach((c,i)=>{const b=document.createElement('button');b.style.background=c;if((save.hatc|0)===i)b.className='on';b.onclick=()=>{save.hatc=i;persist();applyStyle();updClothes()};sw.appendChild(b)})}
 function closePlace(stay){$('place').classList.add('hide');if(curPlace){const d=curPlace.door;player.x=d.x+d.out[0];player.y=d.y+d.out[1];player.placeCd=60}curPlace=null;state='play';keys.clear();if(!stay)beep(392,.07,'sine',.07)}
 function btnA(){
-  if(player.roof){if(nearDecks()){openDecks();return}leaveClub();return}if(player.mode==='ride')return;
+  if(player.roof){if(nearDecks()){openDecks();return}if(nearBar()){buyDrink();return}leaveClub();return}if(player.mode==='ride')return;
   if(player.mode==='pass'){const r=remotes.get(player.passOf);player.mode='foot';player.passOf=null;if(r){player.x=r.x+Math.sin(r.a)*30;player.y=r.y-Math.cos(r.a)*30}beep(330,.06,'sine',.08);return}
   if(player.mode==='foot'){for(const[id,r]of remotes)if(r.m==='car'&&!r.hide&&!r.roof&&Math.hypot(r.x-player.x,r.y-player.y)<38&&![...remotes.values()].some(q=>q.ps===id)){player.mode='pass';player.passOf=id;toast(`Riding with ${r.n} · B to ask to drive · A to hop out`);beep(660,.06,'sine',.08);return}}
   if(player.mode==='foot'){let best=null,bd=26;for(const c of cars){const d=vDist(c,player.x,player.y);if(d<bd){bd=d;best=c}}if(!best)return;
@@ -679,8 +680,10 @@ function btnSteal(best){
     best.ai=false;best.driver=false;best.plan=null;best.da=best.a;best.warned=best.fuel<15;player.car=best;player.mode='car';beep(660,.06,'sine',.08);engineOn();musicVol();setDriving(true);
     if(R()<.5)say(player,pick(['Rolling!','Driving shots, let\'s go.','Who\'s on aux?'],R),150)}
 function stepPlayer(){
+  if(club&&!clubAudio.src&&tick%30===0&&Math.hypot(player.x-clubDoor.x,player.y-clubDoor.y)<700){clubAudio.preload='auto';clubAudio.src='club-mix.mp3';try{clubAudio.load()}catch(e){}}
   if(player.clubCd)player.clubCd--;if(club&&!player.roof&&player.mode==='foot'&&!player.clubCd&&Math.hypot(player.x-clubDoor.x,player.y-clubDoor.y)<24)enterClub();
   if(player.placeCd)player.placeCd--;else if(player.mode==='foot'&&!player.roof)for(const pl of places)if(Math.hypot(player.x-pl.door.x,player.y-pl.door.y)<22){openPlace(pl);return}
+  if(player.cup&&--player.cup.t<=0)player.cup=null;
   if(player.emote){player.emote.t--;if(player.emote.k==='dance')player.walk+=.3;if(player.emote.t<=0)player.emote=null}
   if(player.mode==='foot')for(const r of remotes.values()){if(!!r.roof!==!!player.roof||r.m==='car')continue;const dx=player.x-r.x,dy=player.y-r.y,d=Math.hypot(dx,dy);if(d<14&&d>.01){const k2=(14-d)*.15;const nx=player.x+dx/d*k2,ny=player.y+dy/d*k2;if(player.roof||!blocked(nx,ny,7)){player.x=nx;player.y=ny}}}
   if(player.mode==='ride'){stepRide();return}if(player.mode==='pass'){stepPass();return}
@@ -688,7 +691,7 @@ function stepPlayer(){
   const[sx,sy]=inputVec();
   if(player.say&&--player.say.t<=0)player.say=null;if(--player.talkT<0){player.talkT=900+R()*900;if(!player.say)say(player,pick(LINES,R))}
   if(player.mode==='foot'){const l=Math.hypot(sx,sy);if(l>.12){let dx=(sx+2*sy)/2,dy=(2*sy-sx)/2;const n=Math.hypot(dx,dy);const sp=(k('ShiftLeft')||k('ShiftRight')?2.6:1.8)*Math.min(1,l);
-      dx=dx/n*sp;dy=dy/n*sp;const can=(x,y)=>player.roof?(x>player.roof.x1+12&&x<player.roof.x2-12&&y>player.roof.y1+34&&y<player.roof.y2-12):!blocked(x,y,7);if(can(player.x+dx,player.y))player.x+=dx;if(can(player.x,player.y+dy))player.y+=dy;player.a=Math.atan2(dy,dx);player.walk+=sp*.22}}
+      dx=dx/n*sp;dy=dy/n*sp;const can=(x,y)=>player.roof?(x>player.roof.x1+(player.roof.club?32:12)&&x<player.roof.x2-12&&y>player.roof.y1+34&&y<player.roof.y2-12):!blocked(x,y,7);if(can(player.x+dx,player.y))player.x+=dx;if(can(player.x,player.y+dy))player.y+=dy;player.a=Math.atan2(dy,dx);player.walk+=sp*.22}}
   else if(player.car.type==='plane')stepPlane(player.car,sx,sy);
   else{const c=player.car,sp=vs(c),t=-sy,max=c.fuel>0?sp.max:.6;
     if(t>.1)c.spd+=(c.spd<0?.2:sp.acc)*t;else if(t<-.1)c.spd+=c.spd>0?.17*t:.05*t;else c.spd*=.975;
@@ -864,13 +867,18 @@ function danceTf(o,k,h,beat){const s2=Math.sin(beat*PI),as=Math.abs(s2);
   if(k==='shmoney')return{z:h+as*4,walk:beat*PI*4,a:o.a+Math.sin(beat*PI)*.25};
   if(k==='wind')return{z:h+as*1.5,walk:beat*PI*4,a:o.a+Math.sin(beat*PI*2)*.7};return{z:h+as*3,walk:beat*PI*2,a:o.a+s2*.4}}
 function drawClub(b,now){const h=b.h,bpm=gen?gen.tr.bpm:96,beat=now/1000*bpm/60,bt=beat%1,pulse=Math.pow(1-bt,3),{x1,y1,x2,y2}=b,PAL=['#ff4fa3','#7c4dff','#2ad1c9','#ffd23f'];
-  const fx1=x1+14,fy1=y1+30,fx2=x2-14,fy2=y2-14,n=6,cw=(fx2-fx1)/n,ch=(fy2-fy1)/n;
+  const fx1=x1+34,fy1=y1+30,fx2=x2-14,fy2=y2-14,n=6,cw=(fx2-fx1)/n,ch=(fy2-fy1)/n;
   for(let i=0;i<n;i++)for(let j=0;j<n;j++){const col=PAL[(i+j+Math.floor(beat))%4];ctx.globalAlpha=.45+.5*((i*7+j*3+Math.floor(beat))%3===0?pulse:.2);fillPolyE([P(fx1+i*cw+1,fy1+j*ch+1,h+.5),P(fx1+(i+1)*cw-1,fy1+j*ch+1,h+.5),P(fx1+(i+1)*cw-1,fy1+(j+1)*ch-1,h+.5),P(fx1+i*cw+1,fy1+(j+1)*ch-1,h+.5)],col)}ctx.globalAlpha=1;
   const cx=(x1+x2)/2;smallBox(cx-34,y1+8,cx+34,y1+22,h,h+13,'#1c1c22');fillPoly([P(cx-32,y1+22.5,h+3),P(cx+32,y1+22.5,h+3),P(cx+32,y1+22.5,h+6),P(cx-32,y1+22.5,h+6)],PAL[Math.floor(beat)%4]);
   for(const[sx,sy]of[[x1+6,y1+8],[x2-18,y1+8],[x1+6,y2-18],[x2-18,y2-18]])smallBox(sx,sy,sx+12,sy+12,h,h+20+pulse*2,'#16161b');
   ctx.lineWidth=1;ctx.strokeStyle='rgba(30,30,36,.9)';const corners=[[x1+8,y1+8],[x2-8,y1+8],[x2-8,y2-8],[x1+8,y2-8]];for(let k=0;k<4;k++){const[a1,b1]=corners[k],[a2,b2]=corners[(k+1)%4],p1=P(a1,b1,h+40),p2=P(a2,b2,h+40);ctx.beginPath();ctx.moveTo(p1[0],p1[1]);ctx.quadraticCurveTo((p1[0]+p2[0])/2,(p1[1]+p2[1])/2+10,p2[0],p2[1]);ctx.stroke();
     for(let u=1;u<10;u++){const q=u/10,lx=a1+(a2-a1)*q,ly=b1+(b2-b1)*q,pp=P(lx,ly,h+40-Math.sin(q*PI)*10/Z*.6);ctx.fillStyle=PAL[(u+k+Math.floor(beat*2))%4];ctx.beginPath();ctx.arc(pp[0],pp[1],2.2,0,2*PI);ctx.fill()}
     const pb=P(a1,b1,h),pt=P(a1,b1,h+40);ctx.beginPath();ctx.moveTo(pb[0],pb[1]);ctx.lineTo(pt[0],pt[1]);ctx.stroke()}
+  {const by1=y1+44,by2=y2-34,bx=x1+16;smallBox(x1+6,by1,x1+12,by2,h,h+30,'#2a1c14');for(let yy=by1+4;yy<by2-4;yy+=7){const c3=['#3f7a3a','#c9a227','#8c1d1d','#e9e6df','#2a4f8f'][(yy>>2)%5];smallBox(x1+7,yy,x1+10,yy+3,h+18,h+25,c3);smallBox(x1+7,yy+2,x1+10,yy+5,h+8,h+14,c3)}
+    smallBox(bx,by1,bx+10,by2,h,h+12,'#4a2f1e');fillPolyE([P(bx+10.5,by1,h+3),P(bx+10.5,by2,h+3),P(bx+10.5,by2,h+5),P(bx+10.5,by1,h+5)],PAL[(Math.floor(beat)+1)%4]);
+    for(let yy=by1+8;yy<by2-6;yy+=16)smallBox(bx+3,yy,bx+6,yy+3,h+12,h+17,yy%32<16?'#ffd23f':'#ff4fa3');
+    const[qx,qy]=P(x1+9,(by1+by2)/2,h+44);ctx.font='400 18px Bungee, sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText('BAR',qx+1,qy+1);ctx.fillStyle='#2ad1c9';ctx.fillText('BAR',qx,qy);
+    drawChar({x:x1+12,y:(by1+by2)/2+8,z:h,a:0,walk:0,still:true,body:'boy',fit:{top:'#f1ede4',sleeve:'#f1ede4',inner:'#16161a',pants:'#16161a',shoes:'#16161a'},skin:'#5a3a22',hair:'waves',hc:'#14100d'})}
   if(!dancers.length){for(let i=0;i<14;i++){const girl=R()<.5;dancers.push({u:.08+R()*.84,v:.1+R()*.8,a:R()*PI*2,ph:R()*6,body:girl?'girl':'boy',fit:randFit(girl),skin:pick(['#f1c27d','#c68642','#8d5524','#e0ac69','#5a3a22','#ffdbac'],R),hair:pick(girl?HAIRS_F:HAIRS_M,R)[0],hc:pick(['#14100d','#3b2a1e','#d8c08a','#e8558f'],R)})}}
   const crowd=dancers.map(d=>({...d,x:fx1+d.u*(fx2-fx1),y:fy1+d.v*(fy2-fy1),z:h+Math.abs(Math.sin((beat+d.ph)*PI))*3,a:d.a+Math.sin(beat*PI+d.ph)*.6,walk:beat*PI*2+d.ph}));
   crowd.push({x:cx,y:y1+12,z:h,a:PI*.25,walk:0,still:true,body:'girl',fit:{top:'#6e1f24',sleeve:'#6e1f24',inner:'#f1ede4',pants:'#1d1f24',shoes:'#f2f2f2'},skin:'#8d5524',hair:'press',hc:'#2a160d'});
@@ -947,7 +955,7 @@ function drawChar(o,c=ctx,proj=worldProj){const a=o.a||0,co=Math.cos(a),si=Math.
     B(-3.5-pf,3.5+pf,-7-pf,7+pf,14,28,fit.top,'torso');
     B(-2-sw*.8,2-sw*.8,-10-pf,-7-pf,15,27.5,sl);B(-2+sw*.8,2+sw*.8,7+pf,10+pf,15,27.5,sl);
     B(-1.6-sw*.8,1.6-sw*.8,-9.6-pf,-7.4-pf,12.4,15,skin);B(-1.6+sw*.8,1.6+sw*.8,7.4+pf,9.6+pf,12.4,15,skin);
-    if(o.cam){B(1,7,7.2+pf,11.2+pf,15,20.6,'#1d1d22');B(7,9,8.4+pf,10+pf,16.4,19.2,'#6b6f78')}
+    if(o.cup){B(-1.4,1.4,7.6+pf,10.4+pf,14.6,20,'#f4f1ea');B(-1.1,1.1,7.9+pf,10.1+pf,17.5,19.8,o.cup.col||'#e8763a')}else if(o.cam){B(1,7,7.2+pf,11.2+pf,15,20.6,'#1d1d22');B(7,9,8.4+pf,10+pf,16.4,19.2,'#6b6f78')}
     B(-7,7,-7,7,28,42,skin,'head');if(girl){B(-1,1,-8,-7,30,32.6,'#e8c26a');B(-1,1,7,8,30,32.6,'#e8c26a')}
     const cap=(z1=44)=>B(-7.4,7.1,-7.4,7.4,39,z1,HC);
     switch(o.hair){
@@ -1041,7 +1049,7 @@ function hud(){const found=films.filter(f=>f.got).length;$('filmN').textContent=
   const f=playFrames,tc=[f/216000|0,(f/3600|0)%60,(f/60|0)%60].map(v=>String(v).padStart(2,'0')).join(':');$('tc').textContent=tc;{const hh=Math.floor(LT.hr),mm=Math.floor((LT.hr%1)*60);$('date').textContent=`${curCity.id==='home'?DATE:curCity.name.toUpperCase()} · ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')} · ${SEASONS[wIdx].label.toUpperCase()}`}
   let h='';const tap=isTouch?'A':'E';if(state==='play'){if(c&&inCharger(c.x,c.y)&&c.fuel<100)h=Math.abs(c.spd)<.8?`FILLING UP ${Math.round(c.fuel)}%`:'STOP AT A PUMP TO FILL UP';
     else if(player.mode==='ride')h=`TAXI · TO ${player.ride.d.name.toUpperCase()}`;else if(c&&c.type==='plane')h=c.z>0?(overAir(c.x,c.y)?'OVER THE RUNWAY · EASE OFF TO LAND':'FLYING · FIND THE RUNWAY (BLUE ON THE MAP) TO LAND'):'HOLD THRUST DOWN THE RUNWAY TO TAKE OFF';
-    else if(player.roof)h=nearDecks()?`THE DECKS · PRESS ${tap} TO MIX`:`THE ROOFTOP · WALK TO THE DJ BOOTH TO MIX · EXIT TO LEAVE`;else if(places.some(q=>Math.hypot(q.door.x-player.x,q.door.y-player.y)<140&&!c))h=places.find(q=>Math.hypot(q.door.x-player.x,q.door.y-player.y)<140).hint;
+    else if(player.roof)h=nearDecks()?`THE DECKS · PRESS ${tap} TO MIX`:nearBar()?`THE BAR · PRESS ${tap} FOR A DRINK`:`THE ROOFTOP · DJ BOOTH AT THE BACK · BAR ON THE LEFT`;else if(places.some(q=>Math.hypot(q.door.x-player.x,q.door.y-player.y)<140&&!c))h=places.find(q=>Math.hypot(q.door.x-player.x,q.door.y-player.y)<140).hint;
     else if(player.gps)h=`GPS · ${player.gps.name.toUpperCase()} · ${Math.round(Math.hypot(player.gps.x-player.x,player.gps.y-player.y)/8)}M`;
     else if(!c&&cars.some(q=>q.type==='taxi'&&q.ai&&vDist(q,player.x,player.y)<26))h=`PRESS ${tap} TO HAIL THE TAXI`;else if(club&&Math.hypot(clubDoor.x-player.x,clubDoor.y-player.y)<160)h='ROOFTOP CLUB · WALK INTO THE PURPLE DOOR';else if(!c&&cars.some(q=>vDist(q,player.x,player.y)<26))h=`PRESS ${tap} TO GET IN`;else if(Math.hypot(lab.x-player.x,lab.y-player.y)<160)h=player.carried?'DROP YOUR FILM AT THE LAB':'FILM LAB · BRING FILM ROLLS HERE'}
   {const rx=$('rideX'),rs=player.mode==='ride'&&state==='play';if((rx.style.display!=='none')!==rs)rx.style.display=rs?'':'none'}{const sb=$('swapBtn'),drv=player.car&&[...remotes.values()].some(q=>q.ps===net.id),show=state==='play'&&(player.mode==='pass'||drv);if((sb.style.display!=='none')!==show)sb.style.display=show?'':'none';if(show)sb.textContent=player.mode==='pass'?'ASK TO DRIVE':'LET THEM DRIVE'}{const db=$('danceBar'),on=!!player.roof&&state==='play';if((db.style.display!=='none')!==on)db.style.display=on?'':'none';if(on)db.querySelectorAll('button').forEach(b=>b.classList.toggle('on',player.dance===b.dataset.d))}{const st=$('stars');st.style.display=heat>0?'':'none';st.textContent='★'.repeat(heat)+'☆'.repeat(5-heat)}$('leaveBtn').style.display=player.roof&&state==='play'?'':'none';const el=$('hint');if(el.textContent!==h)el.textContent=h;el.classList.toggle('on',!!h);
@@ -1211,6 +1219,9 @@ function djInit(){if(DJ.init||!AC)return;DJ.init=true;const bus=AC.createGain(),
   if(!clubAudio.src)clubAudio.src='club-mix.mp3'}
 function djLoad(i,idx){const d=DJ.decks[i];if(!d)return;const L=djTracks();d.ti=(idx+L.length)%L.length;const t=L[d.ti],u=trackURL(t);const was=!d.el.paused;if(u&&d.el.src.indexOf(u)<0){d.el.src=u;if(i===1&&t.club)d.el.currentTime=0}if(was)d.el.play().catch(()=>{});$('djT'+i).textContent=(t.t+(t.a?' · '+t.a:'')).toUpperCase()}
 function djXf(){const x=DJ.xf;DJ.decks[0].xg.gain.value=Math.cos(x*PI/2);DJ.decks[1].xg.gain.value=Math.sin(x*PI/2)}
+const DRINKS=[['Rum punch','#e8763a'],['Sorrel','#8c1d2e'],['Ting','#e8d84a'],['Mocktail','#ff6fa8'],['Ginger beer','#d9b86a'],['Water','#bfe3f2']];
+function nearBar(){return player.roof&&player.roof.club&&player.x<player.roof.x1+48&&player.y>player.roof.y1+40&&player.y<player.roof.y2-30}
+function buyDrink(){const d=DRINKS[(Math.random()*DRINKS.length)|0],free=!player.drinks;if(!free&&(save.cash|0)<5){toast('Drinks are £5 · take a client job');return}if(!free){save.cash-=5;persist();money()}player.drinks=(player.drinks|0)+1;player.cup={col:d[1],t:60*60};toast(`${d[0]}${free?' · first one on the house':' · £5'}`);say(player,pick(['Cheers!','Nice one, boss.','Put it on my tab.'],R),120);beep(1320,.05,'sine',.05)}
 function nearDecks(){return player.roof&&Math.hypot(player.x-(club.x1+club.x2)/2,player.y-(club.y1+12))<46}
 function openDecks(){if(!player.roof)return;ensureAudio();djInit();if(!AC)return;DJ.on=true;state='decks';keys.clear();$('decks').classList.remove('hide');document.body.classList.add('decking');music.pause();genStop();
   if(!DJ.decks[1].el.src)djLoad(1,1);djLoad(0,0);if(DJ.decks[1].el.paused){DJ.xf=0;$('djXf').value=0}djXf();if(!save.mute&&clubAudio.paused)clubAudio.play().catch(()=>{});djMode(save.djMode||'easy');toast('You\'re on the decks');say(player,pick(['Pull up!','Rewind!','Big tune incoming.'],R),150);djDraw()}
