@@ -547,9 +547,9 @@ function horn(){if(player.mode!=='car')return;beep(440,.28,'square',.06);beep(55
 function engineOn(){if(!AC||eng)return;const o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain();o.type='sine';o2.type='triangle';o.frequency.value=90;o2.frequency.value=180;g.gain.value=.025;o.connect(g);o2.connect(g);g.connect(master);o.start();o2.start();eng={o,o2,g}}
 function engineOff(){if(!eng)return;const e=eng;eng=null;e.g.gain.setTargetAtTime(0,AC.currentTime,.08);setTimeout(()=>{e.o.stop();e.o2.stop()},400)}
 // ================= MUSIC =================
-const music=new Audio();music.preload='auto';const DRAZY=[{"emb": "trk0", "t": "Love Is Dangerous (Interlude)", "a": "Drazy"}, {"emb": "trk1", "t": "Assumptions", "a": "Drazy"}, {"emb": "trk2", "t": "4 Questions", "a": "Drazy"}, {"emb": "trk3", "t": "Don't Trip", "a": "Drazy"}, {"emb": "trk4", "t": "Don't Trip (Jeleel open 16)", "a": "Drazy"}, {"emb": "trk5", "t": "Testa Rossa", "a": "Drazy"}, {"emb": "trk6", "t": "Money Promises", "a": "Drazy"}, {"emb": "trk7", "t": "4OUR PLAY 21", "a": "Drazy", "alt": "4our-play-21.mp3"}];
+const music=new Audio();music.preload='auto';const DRAZY=[{"emb": "trk0", "t": "Love Is Dangerous (Interlude)", "a": "Drazy", "alt": "love-is-dangerous.mp3"}, {"emb": "trk1", "t": "Assumptions", "a": "Drazy", "alt": "assumptions.mp3"}, {"emb": "trk2", "t": "4 Questions", "a": "Drazy", "alt": "4-questions.mp3"}, {"emb": "trk3", "t": "Don't Trip", "a": "Drazy", "alt": "dont-trip.mp3"}, {"emb": "trk4", "t": "Don't Trip (Jeleel open 16)", "a": "Drazy", "alt": "dont-trip-jeleel.mp3"}, {"emb": "trk5", "t": "Testa Rossa", "a": "Drazy", "alt": "testa-rossa.mp3"}, {"emb": "trk6", "t": "Money Promises", "a": "Drazy", "alt": "money-promises.mp3"}, {"emb": "trk7", "t": "4OUR PLAY 21", "a": "Drazy", "alt": "4our-play-21.mp3"}];
 let playlist=MUSIC.slice(),mIdx=0,mFails=0,mStarted=false,gen=null,noiseBuf=null,am=null;
-for(let i=playlist.length-1;i>0;i--){const j=(R()*(i+1))|0;[playlist[i],playlist[j]]=[playlist[j],playlist[i]]}{const d=DRAZY.filter(t=>document.getElementById(t.emb)||document.readyState==='loading');for(let i=d.length-1;i>0;i--){const j=(R()*(i+1))|0;[d[i],d[j]]=[d[j],d[i]]}{const k=d.findIndex(t=>t.t==='4OUR PLAY 21');if(k>0)d.unshift(d.splice(k,1)[0])}playlist=d.concat(playlist,ARTOS_FM)}
+for(let i=playlist.length-1;i>0;i--){const j=(R()*(i+1))|0;[playlist[i],playlist[j]]=[playlist[j],playlist[i]]}{const d=DRAZY.filter(t=>t.t==='4OUR PLAY 21').filter(t=>document.getElementById(t.emb)||document.readyState==='loading');for(let i=d.length-1;i>0;i--){const j=(R()*(i+1))|0;[d[i],d[j]]=[d[j],d[i]]}{const k=d.findIndex(t=>t.t==='4OUR PLAY 21');if(k>0)d.unshift(d.splice(k,1)[0])}playlist=d}
 window.ARTOS_PACK_ADD=()=>{const L=(window.ARTOS_PACK||[]).splice(0);if(!L.length)return;const add=L.map(x=>({t:x.t,a:x.a||'',pk:x.d}));for(let i=add.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[add[i],add[j]]=[add[j],add[i]]}
   let at=playlist.findIndex(x=>ARTOS_FM.includes(x));if(at<0)at=playlist.length;const cur=playlist[mIdx%playlist.length];playlist.splice(at,0,...add);if(cur)mIdx=playlist.indexOf(cur);if(started)toast(add.length+' more tracks loaded')};window.ARTOS_PACK_ADD();
 const midi=n=>440*Math.pow(2,(n-69)/12);
@@ -1245,7 +1245,7 @@ function wirePanel(pl){const box=$('placeB');
   box.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>mvStart(b.dataset.mv));
   box.querySelectorAll('[data-ph]').forEach(f=>f.onclick=()=>{const p=photos[+f.dataset.ph];$('phImg').src=p.u;$('phSave').href=p.u;$('phSave').download='artos-city-'+Date.now()+'.jpg';$('phCap').textContent=p.w+' · '+p.t;$('phView').classList.remove('hide')})}
 // ---------- radio ----------
-const stationOf=t=>t.gen?(t.st||'BLUE NOTE JAZZ'):t.emb?'DRAZY RADIO':t.pk?'DHEY ORIGINALS':'YOUR TRACKS';let station=null;
+const stationOf=t=>t.gen?(t.st||'BLUE NOTE JAZZ'):t.emb?'DHEY ORIGINALS':t.pk?'DHEY ORIGINALS':'YOUR TRACKS';let station=null;
 const STATION_DJ={'BLUE NOTE JAZZ':'Blue Note Jazz. Smooth and smoky.','BOOM BAP FM':'Boom Bap FM. Heads nodding.','SLOW JAMS':'Slow Jams. Lights low.','DRAZY RADIO':'Drazy Radio. Album on repeat.','DHEY ORIGINALS':'Dhey Originals. Straight from the studio.','YOUR TRACKS':'Your tracks. Your rules.'};
 function stepIdx(dir){if(!playlist.length)return;for(let n=0;n<playlist.length;n++){mIdx=(mIdx+dir+playlist.length)%playlist.length;if(!station||stationOf(playlist[mIdx])===station)return}}
 function updRadio(){const L=$('radL');if(!L||$('radio').classList.contains('hide'))return;const cur=playlist[mIdx%playlist.length],cs=station||(cur?stationOf(cur):'');L.innerHTML='';
@@ -1900,5 +1900,6 @@ t0=performance.now();raf=requestAnimationFrame(frame);
 }
 
 </script>
+<script>(function(){var s=document.createElement('script');s.src='music-pack.js';s.onload=function(){try{window.ARTOS_PACK_ADD&&window.ARTOS_PACK_ADD()}catch(e){}};document.body.appendChild(s)})()</script>
 </body>
 </html>
